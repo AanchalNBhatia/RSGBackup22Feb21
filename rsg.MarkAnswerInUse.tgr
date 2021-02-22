@@ -1,0 +1,32 @@
+trigger MarkAnswerInUse on Question_Answer_Options__c (after insert, after update) 
+{
+    Set<String> recordSet = new Set<String>();
+    Set<String> ansSet = new Set<String>();
+    for(Question_Answer_Options__c rec: Trigger.new)
+    {
+        recordSet.add(rec.id);
+    }
+
+    System.debug('recordSet #### '+recordSet);
+    List<Question_Answer_Options__c> qaoList = [select id, Answer_Option__c from Question_Answer_Options__c where id in :recordSet and Question__r.In_Use__c=true];
+
+    System.debug('qaoList ### '+qaoList);
+
+    for(Question_Answer_Options__c rec: qaoList)
+    {
+        ansSet.add(rec.Answer_Option__c);
+    }
+
+    System.debug('ansSet ### '+ansSet);
+
+    List<Answer_Option__c> ansList = [select id, In_Use_New__c from Answer_Option__c where id in:ansSet];
+
+    System.debug('ansList #### '+ansList);
+
+    for(Answer_Option__c ans: ansList)
+    {
+        ans.In_Use_New__c = true;
+    }
+
+    update ansList;
+}

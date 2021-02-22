@@ -1,0 +1,103 @@
+<apex:page controller="EventCreationCtlrComm" action="{!doInit}" showHeader="false" sidebar="false" docType="html-5.0" lightningStylesheets="true">
+    <apex:slds />
+    <!-- ADDING CALENDAR FUNCTIONALITY - RESOURCES -->
+        <apex:includeScript value="{!URLFOR($Resource.AngularJS, '/AngularJS/angular.min.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.AngularJS, '/AngularJS/angular-translate.js')}"/>
+        
+        <!-- FLEX CALENDAR -->
+        <apex:stylesheet value="{!URLFOR($Resource.FlexCalendar, 'flex-calendar-master/src/flex-calendar.css')}" />
+        <apex:includeScript value="{!URLFOR($Resource.FlexCalendar, 'flex-calendar-master/src/flex-calendar.js')}"/>
+
+        <!-- JQUERY -->
+        <apex:includeScript value="{!URLFOR($Resource.Jquery)}"/>
+        
+        <!-- Moment -->
+        <script src="{!URLFOR($Resource.Moment, 'moment.js')}"/>
+        <script src="{!URLFOR($Resource.Moment_Timezone, 'moment-timezone-with-data.min.js')}"/>
+
+
+    <!-- ADDING CALENDAR FUNCTIONALITY - RESOURCES - END  -->
+    <apex:pageMessages />
+  <apex:form id="changeStatusForm">
+        <apex:pageBlock >
+          <div class="slds-section slds-is-open">
+              <h3 class="slds-section__title slds-theme_shade" style="background:#1797C0;color: white;">
+                  <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Create New Event</span>
+              </h3>
+              <div aria-hidden="false" class="slds-section__content">
+              <div class="slds-form__row">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_horizontal slds-is-editing">
+                        <label class="slds-form-element__label" for="single-form-element-id-02">Assignment</label>
+                            <div class="slds-form-element__control">
+                            <apex:inputfield value="{!woRec.Subject}" html-disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_horizontal slds-is-editing">
+                        <label class="slds-form-element__label" for="single-form-element-id-03">Agent</label>
+                            <div class="slds-form-element__control">
+                            <apex:inputfield value="{!inspRec.name}" html-disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+              </div>
+              <div class="slds-form__row">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_horizontal slds-is-editing">
+                        <label class="slds-form-element__label" for="single-form-element-id-02">Start Date</label>
+                            <div class="slds-form-element__control">
+                            <apex:input label="Start Date" type="date" value="{!eventStartDate}"/>
+                                <apex:selectList size="1" label="Time"  value="{!selectedStartTime}">
+                                <apex:selectOptions value="{!options}"/>
+                            </apex:selectList>
+                            <apex:selectList size="1" value="{!selectedStartAMPM}">
+                                <apex:selectOptions value="{!optionsampm}"/>
+                            </apex:selectList>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_horizontal slds-is-editing">
+                        <label class="slds-form-element__label" for="single-form-element-id-03">End Date</label>
+                            <div class="slds-form-element__control">
+                            <apex:input label="End Date" type="date" value="{!eventEndDate}"/>
+                                <apex:selectList size="1" label="Time"  value="{!selectedEndTime}">
+                                    <apex:selectOptions value="{!options}"/>
+                                </apex:selectList>
+                                <apex:selectList size="1" value="{!selectedEndAMPM}">
+                                    <apex:selectOptions value="{!optionsampm}"/>
+                                </apex:selectList>
+                            </div>
+                        </div>
+                    </div>
+              </div>
+              <div class="slds-form__row">
+                <div class="slds-form__item" role="listitem">
+                  <div class="slds-form-element slds-form-element_horizontal slds-is-editing slds-form-element_1-col">
+                    <label class="slds-form-element__label" for="single-form-element-id-04">Subject</label>
+                    <div class="slds-form-element__control">
+                      <apex:inputfield label="Subject" value="{!woRec.Subject}" style="width:300px" html-disabled="true" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              
+              
+              </div>
+            </div>        
+        
+        
+             <apex:commandButton styleClass="slds-vf-button_brand" value="Save" action="{!createEvent}"/>
+            <apex:commandButton value="Cancel" action="{!cancel}"/>
+        
+       </apex:pageBlock>
+    </apex:form>
+
+    <div class="wrapp slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+        <flex-calendar options="" events=""></flex-calendar>
+    </div>
+
+</apex:page>

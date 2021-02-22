@@ -1,0 +1,40 @@
+trigger RollupQAOptionsToQuestion on Question_Answer_Options__c (after insert, after update, after delete) {
+    
+    Set<Id> quesIdSet = new Set<Id>();
+    Map<Id, String> questIdAndAnsOptsMap = new Map<Id, String>();
+    List<Question__c> questListToBeUpdated = new List<Question__c>();
+    
+    if (trigger.isInsert || trigger.isUpdate) {
+        for (Question_Answer_Options__c qaOpt : trigger.new) {                
+            if (trigger.isInsert || (trigger.isUpdate && qaOpt.Answer_Option_Order__c != trigger.oldMap.get(qaOpt.Id).Answer_Option_Order__c)) {
+                if (String.isNotEmpty(qaOpt.Answer_Option_Text__c)) {                          
+                    quesIdSet.add(qaOpt.Question__c);
+                }
+            }
+        }
+        
+        if (trigger.isDelete) {
+            for (Question_Answer_Options__c oldQAOpt : trigger.old) {
+                if (String.isNotEmpty(oldQAOpt.Answer_Option_Text__c)) {
+                    quesIdSet.add(oldQAOpt.Question__c);
+                }
+            }
+        }
+        if (quesIdSet.size() > 0) {
+            for (Question_Answer_Options__c qaOpt : [ SELECT Question__c, Answer_Option_Text__c FROM Question_Answer_Options__c WHERE Question__c IN :quesIdSet ORDER BY Answer_Option_Order__c ]) {
+                if (!questIdAndAnsOptsMap.containsKey(qaOpt.Question__c)) {
+                    questIdAndAnsOptsMap.put(qaOpt.Question__c, qaOpt.Answer_Option_Text__c);
+                } else {
+                    questIdAndAnsOptsMap.put(qaOpt.Question__c, questIdAndAnsOptsMap.get(qaOpt.Question__c) + '~' + qaOpt.Answer_Option_Text__c);
+                } 
+            }
+            for (Question__c ques : [ SELECT Id, Answer_Options__c FROM Question__c WHERE Id IN :quesIdSet ] ) {
+                ques.Answer_Options__c = (questIdAndAnsOptsMap.containsKey(ques.Id)) ? questIdAndAnsOptsMap.get(ques.Id) : '';
+                questListToBeUpdated.add(new Question__c(Id = ques.Id, Answer_Options__c = ques.Answer_Options__c));
+            }
+            if (questListToBeUpdated.size() > 0) {
+                update questListToBeUpdated;
+            }            
+        }
+    }    
+}

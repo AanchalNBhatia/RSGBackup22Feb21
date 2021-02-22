@@ -1,0 +1,493 @@
+<apex:page controller="EventCreationCtlr" sidebar="false" docType="html-5.0">
+
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+        <head>
+        
+            <!-- SLDS -->
+            <apex:slds />
+                        
+            <!-- ANGULAR JS -->
+            <apex:includeScript value="{!URLFOR($Resource.AngularJS, '/AngularJS/angular.min.js')}"/>
+            <apex:includeScript value="{!URLFOR($Resource.AngularJS, '/AngularJS/angular-translate.js')}"/>
+            
+            <!-- FLEX CALENDAR -->
+            <apex:stylesheet value="{!URLFOR($Resource.FlexCalendar, 'flex-calendar-master/src/flex-calendar.css')}" />
+            <apex:includeScript value="{!URLFOR($Resource.FlexCalendar, 'flex-calendar-master/src/flex-calendar.js')}"/>
+    
+            <!-- JQUERY -->
+            <apex:includeScript value="{!URLFOR($Resource.Jquery)}"/>
+            
+            <!-- Moment -->
+            <script src="{!URLFOR($Resource.Moment, 'moment.js')}"/>
+            <script src="{!URLFOR($Resource.Moment_Timezone, 'moment-timezone-with-data.min.js')}"/>
+            
+            <!-- ALJS (Date Picker - appiphony) -->        
+            <script src="{!URLFOR($Resource.Appiphony_ALJS, 'jquery.aljs-init.min.js')}"></script>
+            <script src="{!URLFOR($Resource.Appiphony_ALJS, 'jquery.aljs-datepicker.min.js')}"></script>
+            
+        </head>
+        
+        <style>
+        
+            /*
+              Git Repo: https://github.com/Russian60/flex-calendar
+            */
+            * {
+                -webkit-font-smoothing: antialiased;
+            }
+            
+            #phHeaderLogoImage{
+                max-width: initial !important;
+            }
+            
+            .wrapp {
+                margin: 0 auto;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-content: center;
+                align-items: center;
+                border: #e0e3e5;
+                border-style: solid;
+                border-width: .1px;
+            }
+            
+            .slds-card__header{
+                padding-top: 0.75rem;
+                //margin-bottom: 0rem !important;
+                padding-bottom: 0.7rem;
+                background: #1797c0;
+                color:white;
+            }
+            
+            .slds-dropdown {
+                margin-top: -21.875rem !important;
+            }
+              
+        </style>   
+        
+    
+        <div ng-app="eventApp" ng-controller="eventCtlr" class="slds-scope" id="eventCreationId">
+        
+            <!--Error Toast-->
+            <c:InpectionToast /> 
+            <div ng-show="showspinner"><c:Spinner /></div> 
+            
+            <article class="slds-card" style="background: none;">
+                <div class="slds-card__header slds-grid slds-wrap">
+                    <header class="slds-media slds-media_center slds-has-flexi-truncate">                   
+                        <div class="slds-media__body">
+                            <h2>
+                                <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                                    <span class="slds-text-heading_small">CREATE NEW EVENT</span>
+                                </a>
+                            </h2>
+                        </div>
+                    </header>
+                    <div class="slds-no-flex">
+                        <button class="slds-button slds-button_neutral" ng-click="cancelEvent()">Cancel</button>
+                        <button class="slds-button slds-button_neutral" ng-click="createEvent()">Save</button>
+                    </div>
+                </div>
+                
+                <div class="slds-card__body" style="background-color: white;"> 
+                
+                    <div class="slds-form slds-grid slds-wrap slds-align_absolute-center" style="width: 70%;">
+                         
+                         
+                        <div class="slds-form-element slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+                            <label class="slds-form-element__label" for="inspection">Assignment</label>
+                            <div class="slds-form-element__control">
+                                <input type="text" ng-model="woName" class="slds-input" style="background:white;" disabled="true"/>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+                            <label class="slds-form-element__label" for="inspection">Agent</label>
+                            <div class="slds-form-element__control">
+                                <input type="text" ng-model="inspectorName" class="slds-input" style="background:white;" disabled="true"/>
+                            </div>
+                        </div> 
+                        <div style="disply: inline-block;" class="slds-form-element slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+                            <label class="slds-form-element__label" for="stDate">Start Date</label>
+                            <div class="slds-form-element__control" style="display: -webkit-box;">
+                                <div class="slds-input-has-icon slds-input-has-icon_right" style="width: 60%;">
+                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS)}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                    </svg>
+                                    <input id="stDate" class="slds-input" type="text" label="Start Date" ng-model="eventRec.StartDate" ng-change="setEndDate()"/>                                        
+                                </div>
+                                
+                                <div class="slds-form-element" style="width: 20%; float: right; padding-left: 2%; padding-right: 2%; margin-left: 2%;">
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-select_container">
+                                            <select class="slds-select" ng-model="eventRec.StartTime" ng-options="time as time for time in timeList" ng-change="setEndDate()"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-form-element" style="width: 20%; float: right; padding-left: 2%; padding-right: 2%;"> 
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-select_container">
+                                            <select class="slds-select" ng-model="eventRec.StartMeridian" ng-options="mer as mer for mer in periodList" ng-change="setEndDate()"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-left_small slds-p-around_small">
+                            <label class="slds-form-element__label" for="endDate">End Date</label>
+                            <div class="slds-form-element__control" style="display: -webkit-box;">
+                                <div class="slds-input-has-icon slds-input-has-icon_right" style="width: 60%;">
+                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS)}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                    </svg>
+                                    <input id="endDate" class="slds-input" type="text" label="End Date" ng-model="eventRec.EndDate"/>
+                                </div>
+                                <div class="slds-form-element" style="width: 20%; float: right; padding-left: 2%; padding-right: 2%; margin-left: 2%;">
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-select_container">
+                                            <select class="slds-select" ng-model="eventRec.EndTime" ng-options="time as time for time in timeList"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-form-element" style="width: 20%; float: right; float: right; padding-left: 2%; padding-right: 2%;">
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-select_container">
+                                            <select class="slds-select" ng-model="eventRec.EndMeridian" ng-options="mer as mer for mer in periodList"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+                            <label class="slds-form-element__label" for="SubjectId">Subject</label>
+                            <div class="slds-form-element__control">
+                                <input type="text" ng-model="woName" class="slds-input" style="background:white;" disabled="true" />
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+                        </div>
+                    </div>
+                
+                </div>
+            </article>
+            
+            <article class="slds-card" style="background: none;">
+                <div class="slds-card__header slds-grid slds-wrap">
+                    <header class="slds-media slds-media_center slds-has-flexi-truncate">                   
+                        <div class="slds-media__body">
+                            <h2>
+                                <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                                    <span class="slds-text-heading_small">Events of {{inspectorName}}</span><br/>
+                                    <span class="slds-text-heading_small">Total events: {{allEvents.length}}</span>
+                                </a>
+                            </h2>
+                        </div>
+                    </header>
+                    <div class="slds-no-flex">
+                        <button class="slds-button slds-button_neutral" ng-click="showAll=true">Show All Events</button>
+                    </div>
+                </div>
+                <div class="slds-card__body" style="background-color: white;"> 
+                    <div class="slds-grid slds-wrap">
+                        <div class="wrapp slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small">
+                            <flex-calendar options="options" events="events"></flex-calendar>
+                        </div>
+                        <div class="slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-p-around_small" scope="row">                                               
+                            <div style="height: 400px;" class="slds-scrollable_y" ng-show="showAll">
+                                
+                                <ul class="slds-has-dividers_around-space">
+                                    <li class="slds-item" ng-repeat="evt in allEvents">
+                                        <div class="slds-tile slds-tile_board">
+                                            <h3 class="slds-truncate" title="{{evt.Subject}}"><a href="javascript:void(0);">{{evt.Subject}}</a></h3>
+                                            <div class="slds-tile__detail slds-text-body_small">
+                                                <p class="slds-truncate">{{evt.Inspection}}</p>
+                                                <p class="slds-truncate">{{evt.StartDateTime}} - {{evt.EndDateTime}}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                                                  
+                                                    
+                            <div ng-show="!showAll && showDetail" style="height: 400px;" class="slds-scrollable_y">
+                            
+                                <ul class="slds-has-dividers_around-space">
+                                    <li class="slds-item" ng-repeat="evt in eventDetails">
+                                        <div class="slds-tile slds-tile_board">
+                                            <h3 class="slds-truncate" title="{{evt.Subject}}"><a href="javascript:void(0);">{{evt.Subject}}</a></h3>
+                                            <div class="slds-tile__detail slds-text-body_small">
+                                                <p class="slds-truncate">{{evt.Inspection}}</p>
+                                                <p class="slds-truncate">{{evt.StartDateTime}} - {{evt.EndDateTime}}</p>
+                                                <p class="slds-truncate">{{evt.Description}}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+            </article>  
+                       
+        </div>
+    </html>
+    
+    <script>
+        
+        var $j = jQuery.noConflict();
+        var assetsLoc = '{!URLFOR($Asset.SLDS)}';
+        $j.aljsInit({
+            assetsLocation: assetsLoc, // Specifies the directory containing SLDSs assets directory
+            scoped: true // Specifies whether or not the page is scoped using the slds class
+        });
+        
+        angular.module('eventApp', ['flexcalendar', 'pascalprecht.translate']).controller('eventCtlr', ['$scope', '$filter', function($scope, $filter) {
+                      
+            var assignmentAndAgentDetail = JSON.parse('{!JSENCODE(assignmentAndAgentDetail)}');
+            var woId = '{!JSENCODE($CurrentPage.parameters.workorder)}';
+            $scope.woName = assignmentAndAgentDetail.woName;
+            $scope.inspectorName = assignmentAndAgentDetail.inspectorName;
+            $scope.events = [];
+            var eventMap = {};
+            $scope.eventDetails = [];
+            $scope.showDetail = false;
+            $scope.eventClick = false;
+            $scope.isError = false;
+            $scope.isSuccess = false;
+            $scope.showSpinner = false;
+            $scope.subjects = JSON.parse('{!JSENCODE(subjectOptions)}');
+            $scope.timeList = [ '1:00', '1:30', '2:00', '2:30', '3:00', '3:30', '4:00', '4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', '8:30', '9:00', '9:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30' ];
+            $scope.periodList = [ 'AM', 'PM' ];
+            $scope.inspectionList = []; 
+            $scope.allEvents = []; 
+            $scope.eventRec = {};            
+            
+            $j(document).ready(function() {
+                $j('#stDate').datepicker({                
+                    initDate: '',
+                    onChange: function(datepicker) {
+                        $scope.setEndDate();
+                    }
+                });
+                $j('#endDate').datepicker({
+                    initDate: ''
+                });
+            });          
+            
+            function formDateString(ISODateStr) {
+                if(ISODateStr) {
+                    var dateParts = ISODateStr.split('T')[0].split('-');
+                    var timeParts = ISODateStr.split('T')[1].split(':');
+                    var meridian;
+                    if (parseInt(timeParts[0]) > 12) {
+                        meridian = 'PM';
+                        timeParts[0] = parseInt(timeParts[0]) - 12;
+                    } else {
+                        if (parseInt(timeParts[0]) == 12) {
+                            meridian = 'PM';
+                        } else {
+                            meridian = 'AM';
+                        }
+                    }
+                    timeParts[0] = (parseInt(timeParts[0]) < 10 && parseInt(timeParts[0]) > 0) ? '0' + parseInt(timeParts[0]) : timeParts[0];
+                    timeParts[1] = (parseInt(timeParts[1]) < 10 && parseInt(timeParts[1]) > 0) ? '0' + parseInt(timeParts[1]) : timeParts[1];
+                    var dateStr = dateParts[1] + '/' + dateParts[2] + '/' + dateParts[0] + ' ' + timeParts[0] + ':' + timeParts[1] + ' ' + meridian;
+                    return dateStr;
+                } else {
+                    return '';
+                }
+            } 
+            
+            function convertDateStrToISOFormat(dateStr, timeStr, meridian) {
+                var dateParts = dateStr.split('/');
+                var timeParts = timeStr.split(':');
+                if (meridian == 'PM' && parseInt(timeParts[0]) < 12) {
+                    timeParts[0] = parseInt(timeParts[0]) + 12;
+                }
+                timeParts[0] = (parseInt(timeParts[0]) < 10 && parseInt(timeParts[0]) > 0) ? '0' + timeParts[0] : timeParts[0];
+                timeParts[1] = (parseInt(timeParts[1]) < 10 && parseInt(timeParts[1]) > 0) ? '0' + timeParts[1] : timeParts[1];
+                                
+                //convert start and end datetime to ISO format 
+                var dateTimeISO = dateParts[2] + '-' + dateParts[0] + '-' + dateParts[1] + 'T' + timeParts[0] + ':' + timeParts[1] + ':00';
+                return dateTimeISO;
+            }         
+            
+            $scope.options = {
+                dayNamesLength: 1, // 1 for "M", 2 for "Mo", 3 for "Mon"; 9 will show full day names. Default is 1.
+                mondayIsFirstDay: true,//set monday as first day of week. Default is false
+                eventClick: function(date) {
+                    $scope.showAll = false;
+                    $scope.eventClick = true;
+                    $scope.showDetail = true;
+                    $scope.eventDetails = eventMap[$filter('date')(date.event[0].date, "MM/dd/yyyy")];
+                },
+                dateClick: function(date) {
+                    if (!$scope.eventClick) {
+                        $scope.showDetail = false;
+                        $scope.showAll = false;
+                    }
+                    $scope.eventClick = false;
+                },
+                changeMonth: function(month, year) {
+                    $scope.eventClick = false;
+                },
+            };
+            
+            $scope.getEvents = function() {
+                if (assignmentAndAgentDetail.inspectorId) {
+                    $scope.showSpinner = true;
+                    $scope.showAll = true;
+                    var eventsTemp = [];
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.EventCreationCtlr.getAllEvents}', assignmentAndAgentDetail.inspectorId, function(result, event) {
+                        if (event.status) {
+                            result.forEach(function(res) {   
+                                                         
+                                var stDatetimeISO = moment.tz(res.startDate, assignmentAndAgentDetail.timezone).format();
+                                var stDatetime = formDateString(stDatetimeISO);
+                                
+                                var endDatetimeISO = moment.tz(res.endDate, assignmentAndAgentDetail.timezone).format();
+                                var endDatetime = formDateString(endDatetimeISO);
+                                
+                                var eventRec = { StartDateTime : stDatetime, EndDateTime : endDatetime, StartDattimeISO : stDatetimeISO, EndDatetimeISO : endDatetimeISO, Subject : res.subject, Description : res.description, Inspection : res.inspection};
+                                
+                                var stDate = stDatetime.split(' ')[0];
+                                if (!eventMap[stDate]) {
+                                    eventMap[stDate] = [];
+                                    eventsTemp.push({date: stDate})
+                                } 
+                                eventMap[stDate].push(eventRec);
+                                
+                                $scope.allEvents.push(eventRec); 
+                            });
+                            $scope.events = eventsTemp;
+                            
+                            var assignmentDateISO = assignmentAndAgentDetail.assignmentDate ? moment.tz(assignmentAndAgentDetail.assignmentDate, assignmentAndAgentDetail.timezone).format() : '';
+                            var formattedAssignmenDate = formDateString(assignmentDateISO) != '' ? formDateString(assignmentDateISO).split(' ') : '';
+                            $j('#stDate').val(formattedAssignmenDate[0]);
+                            if (formattedAssignmenDate[1]) {
+                                $scope.eventRec.StartTime = ((formattedAssignmenDate[1].split(':')[0].startsWith('0')) ? formattedAssignmenDate[1].split(':')[0].substr(1,1) : formattedAssignmenDate[1].split(':')[0]) + ':' + formattedAssignmenDate[1].split(':')[1];  
+                            }
+                            $scope.eventRec.StartMeridian = formattedAssignmenDate[2];
+                            $scope.setEndDate();
+                            
+                            $scope.showSpinner = false;
+                            $scope.$apply();                        
+                        } else if (event.message && event.type === 'exception') {
+                            $scope.showSpinner = false;
+                            $scope.isError = true;
+                            $scope.errorMessage = event.message;
+                            $scope.$apply();
+                        }
+                    }, { escape : false } );
+                }                
+            }
+            
+            $scope.getEvents();
+            
+            $scope.setEndDate = function() {
+                if ($scope.eventRec && $scope.eventRec.StartTime && $scope.eventRec.StartMeridian && $j('#stDate').val()) {
+                    var stDateString = convertDateStrToISOFormat($j('#stDate').val(), $scope.eventRec.StartTime, $scope.eventRec.StartMeridian);
+                    var m1 = moment.tz(stDateString, assignmentAndAgentDetail.timezone);                
+                    if (assignmentAndAgentDetail.inspectionTime) {
+                        var hrs = parseInt(assignmentAndAgentDetail.inspectionTime.toString().split('.')[0]);                             
+                        var mins;
+                        if (assignmentAndAgentDetail.inspectionTime.toString().split('.')[1] == '05') {
+                            mins = parseInt(assignmentAndAgentDetail.inspectionTime.toString().split('.')[1]);
+                        } else {
+                            mins = (parseInt(assignmentAndAgentDetail.inspectionTime.toString().split('.')[1]) < 10) ?  parseInt(assignmentAndAgentDetail.inspectionTime.toString().split('.')[1] + '0') : parseInt(assignmentAndAgentDetail.inspectionTime.toString().split('.')[1]);
+                        }
+                    }
+                    mins = (!mins) ? parseInt('00') : mins;
+                    var totMins = (hrs * 60) + mins;    
+                    
+                    var endDateTime = m1.add(totMins, 'minutes');                    
+                    var fomattedDate = formDateString(endDateTime.format()) != '' ? formDateString(endDateTime.format()).split(' ') : '';
+                    $j('#endDate').val(fomattedDate[0]);
+                    if (fomattedDate[1]) {
+                        $scope.eventRec.EndTime = ((fomattedDate[1].split(':')[0].startsWith('0')) ? fomattedDate[1].split(':')[0].substr(1,1) : fomattedDate[1].split(':')[0]) + ':' + fomattedDate[1].split(':')[1];  
+                    }
+                    $scope.eventRec.EndMeridian = fomattedDate[2];
+                }
+            }
+            
+            $scope.createEvent = function() {
+            
+                $scope.showSpinner = true;
+                var eventRecToInsert = {};
+                $scope.isError = false;
+                $scope.isSuccess = false;
+                var eventsTemp = angular.copy($scope.events);
+                
+                if ($scope.eventRec && $j('#stDate').val() && $scope.eventRec.StartTime && $scope.eventRec.StartMeridian && $j('#endDate').val() && $scope.eventRec.EndTime && $scope.eventRec.EndMeridian) {
+                
+                    eventRecToInsert.Subject = $scope.woName;                    
+                    eventRecToInsert.WhatId = woId;
+                    
+                    if (assignmentAndAgentDetail.inspectorId.startsWith('005')) {
+                        eventRecToInsert.OwnerId = assignmentAndAgentDetail.inspectorId;
+                    } else if (assignmentAndAgentDetail.inspectorId.startsWith('003')) {
+                        eventRecToInsert.WhoId = assignmentAndAgentDetail.inspectorId;
+                    }
+                    
+                    var stDateString = convertDateStrToISOFormat($j('#stDate').val(), $scope.eventRec.StartTime, $scope.eventRec.StartMeridian);
+                    var endDateString = convertDateStrToISOFormat($j('#endDate').val(), $scope.eventRec.EndTime, $scope.eventRec.EndMeridian);
+                    var m1 = moment.tz(stDateString, assignmentAndAgentDetail.timezone);                
+                    var m2 = moment.tz(endDateString, assignmentAndAgentDetail.timezone); 
+                    eventRecToInsert.StartDateTime = m1.format();
+                    eventRecToInsert.EndDateTime = m2.format();  
+                    var isDuplicate = false;
+                    var dupEvent;
+                    $scope.allEvents.forEach(function(evt) {                        
+                        if (!isDuplicate && ((eventRecToInsert.StartDateTime >= evt.StartDattimeISO && eventRecToInsert.StartDateTime < evt.EndDatetimeISO) || (eventRecToInsert.StartDateTime <= evt.StartDattimeISO && eventRecToInsert.EndDateTime > evt.StartDattimeISO))) {
+                            dupEvent = evt;
+                            isDuplicate = true;
+                        }
+                    });
+                    
+                    if (isDuplicate) {
+                        $scope.showSpinner = false;
+                        $scope.isError = true;
+                        $scope.errorMessage = 'Already there is an event \'' + dupEvent.Subject + '\' at this schedule.';
+                    } else {
+                        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.EventCreationCtlr.createEvent}', JSON.stringify(eventRecToInsert), assignmentAndAgentDetail.inspectorRecId, function(result, event) {
+                            if (event.status) {
+                                var url = '/' + woId;               
+                                if( (typeof sforce != 'undefined') && (sforce != null) ) {
+                                    // Salesforce1 navigation
+                                    sforce.one.navigateToURL(url);
+                                } else {
+                                    // Set the windows URL
+                                    window.parent.location = url;
+                                }
+                            } else if (event.message && event.type === 'exception') {
+                                $scope.showSpinner = false;
+                                $scope.isError = true;
+                                $scope.errorMessage = event.message;
+                                $scope.$apply();
+                            }
+                        });
+                    }
+                } else {
+                    $scope.showSpinner = false;
+                    $scope.isError = true;
+                    $scope.errorMessage = 'All fields are required.';
+                }
+            }
+            
+            $scope.cancelEvent = function() {
+                var url = '/' + woId;               
+                if( (typeof sforce != 'undefined') && (sforce != null) ) {
+                    // Salesforce1 navigation
+                    sforce.one.navigateToURL(url);
+                } else {
+                    // Set the windows URL
+                    window.parent.location = url;
+                }
+            } 
+        }]);        
+         
+    </script>
+    
+</apex:page>
